@@ -41,9 +41,3 @@ WORKDIR /opt/PotreeConverter/build
 # ENTRYPOINT ["./PotreeConverter"]
 CMD ["PotreeConverter"]
 
-
-
-
-# WORKDIR /root
-# รัน shell เพื่อให้ container ไม่ exit
-# CMD ["/bin/bash"]
