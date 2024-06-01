@@ -1,28 +1,49 @@
-# Instructions: https://github.com/chrvadala/potree-converter-docker.git
+FROM ubuntu:22.04
 
-FROM ubuntu:20.04
-MAINTAINER cvdlab
 VOLUME ["/input", "/output"]
 
-# in case
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y \
-libtiff-dev libgeotiff-dev libgdal-dev \
-libboost-system-dev libboost-thread-dev libboost-filesystem-dev libboost-program-options-dev libboost-regex-dev libboost-iostreams-dev libtbb-dev \
-git cmake build-essential wget
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    wget \
+    vim \
+    net-tools \
+    iputils-ping \
+    g++-10 \
+    cmake \
+    && apt-get clean
 
 WORKDIR /opt
 
-# install LAStools
-RUN git clone https://github.com/m-schuetz/LAStools.git && cd LAStools/LASzip && mkdir build && cd build && \
-cmake -DCMAKE_BUILD_TYPE=Release .. && make && make install && ldconfig
+# Install Laszip
+COPY LAStools/master/LASzip /opt/LASzip
+WORKDIR /opt/LASzip
+RUN mkdir build && cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && make && make install && ldconfig
 
-# install PotreeConverter
-RUN git clone -b develop https://github.com/potree/PotreeConverter.git && cd PotreeConverter && mkdir build && cd build && \
-cmake -DCMAKE_BUILD_TYPE=Release -DLASZIP_INCLUDE_DIRS=/opt/LAStools/LASzip/dll/ -DLASZIP_LIBRARY=/usr/local/lib/liblaszip.so .. && \
-make && cp -r /opt/PotreeConverter/resources /opt/PotreeConverter/build/resources
+# Install PotreeConverter
+ENV CXXFLAGS="-std=c++17"
+ENV LDFLAGS="-lstdc++fs"
+
+COPY PotreeConverter /opt/PotreeConverter
+WORKDIR /opt/PotreeConverter
+RUN mkdir build && cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DLASZIP_INCLUDE_DIRS=/opt/LASzip/dll -DLASZIP_LIBRARY=/opt/LASzip/build/src/liblaszip.so .. && \
+    make && make install && ldconfig && \
+    cp -r /opt/PotreeConverter/PotreeConverter/resources /opt/PotreeConverter/build/resources
 
 WORKDIR /opt/PotreeConverter/build
 
-ENTRYPOINT ["./PotreeConverter"]
+# ENTRYPOINT ["./PotreeConverter"]
+CMD ["PotreeConverter"]
+
+
+
+
+# WORKDIR /root
+# รัน shell เพื่อให้ container ไม่ exit
+# CMD ["/bin/bash"]
