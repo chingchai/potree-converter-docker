@@ -24,3 +24,17 @@ Potree Converter utility packed as Docker container
 
 ## Credits
 Project inspired by https://github.com/sverhoeven/PotreeConverter
+
+
+# Docker build
+```bash
+sudo docker build -t potreeconverter:1.7 .
+
+```
+
+# Docker Run
+```bash
+
+docker run -v $PWD/input:/input -v $PWD/output:/output potreeconverter:1.7 PotreeConverter PotreeConverter /input/point_cloud.las -p pointcloud -o /output/pointcloud
+
+```
